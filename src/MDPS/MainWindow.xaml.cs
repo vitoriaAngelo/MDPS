@@ -563,11 +563,11 @@ public partial class MainWindow : Window
         CompactPanel.Visibility = _compactMode ? Visibility.Visible : Visibility.Collapsed;
         WindowBorder.Padding = _compactMode ? new Thickness(7, 5, 7, 4) : new Thickness(12, 10, 12, 10);
         MinWidth = _compactMode ? 240 : 275;
-        MinHeight = _compactMode ? 165 : 420;
+        MinHeight = _compactMode ? 280 : 420;
         if (resize)
         {
             Width = _compactMode ? 290 : 282;
-            Height = _compactMode ? 245 : 505;
+            Height = _compactMode ? 300 : 505;
         }
         GearPopup.PlacementTarget = _compactMode ? CompactGearButton : GearButton;
     }
@@ -595,7 +595,7 @@ public partial class MainWindow : Window
             else
             {
                 Width = _compactMode ? 290 : 282;
-                Height = _compactMode ? 245 : 505;
+                Height = _compactMode ? 300 : 505;
             }
         }
         GearPopup.PlacementTarget = _autoCollapsed ? IdleGearButton : _compactMode ? CompactGearButton : GearButton;
