@@ -98,7 +98,21 @@ public sealed class PartyOnly
 
     public void Update(PartyRosterEvent roster)
     {
-        lock (_gate) _members = roster.Members.ToArray();
+        lock (_gate)
+        {
+            var incoming = roster.Members.ToArray();
+            if (_members is not null && _members.Any(old => !incoming.Any(next =>
+                string.Equals(old.Name, next.Name, StringComparison.OrdinalIgnoreCase) &&
+                (old.ServerId == 0 || next.ServerId == 0 || old.ServerId == next.ServerId))))
+            {
+                _actorIds.Clear();
+                _namedActors.Clear();
+                _knownPlayers.Clear();
+                _profileMembers.Clear();
+                _inferredMembers = [];
+            }
+            _members = incoming;
+        }
     }
 
     public EncounterSnapshot? Filter(EncounterSnapshot? snapshot)

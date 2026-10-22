@@ -6,6 +6,18 @@ using MDPS;
 public class PartyOnlyTests
 {
     [Fact]
+    public void New_party_roster_discards_old_observed_members()
+    {
+        var filter = new PartyOnly();
+        filter.Update(new PartyRosterEvent(1000, [new PartyMemberInfo("Antigo", 2001, 1, 0, 0, GameClass.Ranger)]));
+        filter.Observe(new PartyMemberObservedEvent(1100, 9, "Antigo", 2001));
+        filter.Update(new PartyRosterEvent(2000, [new PartyMemberInfo("Novo", 2001, 1, 0, 0, GameClass.Cleric)]));
+        Assert.Equal(["Novo"], filter.MissingMembers(null).Select(m => m.Name));
+        Assert.DoesNotContain(filter.Filter(CrowdFight() with { Combatants =
+            [.. CrowdFight().Combatants, new CombatantSnapshot(9, "Antigo", GameClass.Ranger, false, 1000, 1000, 0, 1, 0, 1000, 0)] })!.Combatants,
+            c => c.Name == "Antigo");
+    }
+    [Fact]
     public void Party_actor_id_replaces_placeholder_with_profile_name_without_losing_damage()
     {
         var filter = new PartyOnly();
