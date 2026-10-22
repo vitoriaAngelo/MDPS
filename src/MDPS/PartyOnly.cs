@@ -52,7 +52,29 @@ public sealed class PartyOnly
     {
         var members = (_members ?? []).Concat(_profileMembers.Values).Concat(_inferredMembers)
             .Concat(_knownPlayers.Values.Select(p => new PartyMemberInfo(p.Name, p.ServerId, 0, 0, 0, p.Class)));
-        return members.DistinctBy(m => (m.Name.ToUpperInvariant(), m.ServerId)).ToArray();
+        var merged = new List<PartyMemberInfo>();
+        foreach (var member in members.Where(m => !string.IsNullOrWhiteSpace(m.Name)))
+        {
+            int index = merged.FindIndex(existing =>
+                string.Equals(existing.Name, member.Name, StringComparison.OrdinalIgnoreCase)
+                && (existing.ServerId == 0 || member.ServerId == 0 || existing.ServerId == member.ServerId));
+            if (index < 0)
+            {
+                merged.Add(member);
+                continue;
+            }
+
+            var existing = merged[index];
+            merged[index] = existing with
+            {
+                ServerId = existing.ServerId != 0 ? existing.ServerId : member.ServerId,
+                Level = Math.Max(existing.Level, member.Level),
+                GearScore = Math.Max(existing.GearScore, member.GearScore),
+                CombatPower = Math.Max(existing.CombatPower, member.CombatPower),
+                Class = existing.Class != GameClass.Unknown ? existing.Class : member.Class
+            };
+        }
+        return merged.ToArray();
     }
 
     public PartyMemberInfo[] MissingMembers(EncounterSnapshot? snapshot)
@@ -62,7 +84,7 @@ public sealed class PartyOnly
         return roster.Where(m => snapshot is null || !snapshot.Combatants.Any(c =>
             string.Equals(c.Name, m.Name, StringComparison.OrdinalIgnoreCase)
             && (m.ServerId == 0 || c.ServerId == 0 || m.ServerId == c.ServerId)))
-            .DistinctBy(m => (m.Name.ToUpperInvariant(), m.ServerId)).ToArray();
+            .ToArray();
     }
 
     public void Reset()

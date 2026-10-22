@@ -68,6 +68,27 @@ public class PartyOnlyTests
     }
 
     [Fact]
+    public void FirstPartyLoadMergesPartialAndCompleteCopiesOfTheSamePlayer()
+    {
+        var filter = new PartyOnly();
+        filter.Update(new PartyRosterEvent(1000,
+        [new PartyMemberInfo("Trojão", 0, 0, 0, 0, GameClass.Unknown),
+         new PartyMemberInfo("LoveBloodKil", 0, 0, 0, 0, GameClass.Unknown)]));
+        filter.Observe(new PartyMemberObservedEvent(1100, 20, "Trojão", 2001));
+        filter.Observe(new PartyMemberObservedEvent(1100, 21, "LoveBloodKil", 2001));
+        filter.ObserveKnownPlayers(
+        [new CachedPlayer(20, "Trojão", GameClass.Ranger, 2001),
+         new CachedPlayer(21, "LoveBloodKil", GameClass.Cleric, 2001)]);
+
+        var members = filter.MissingMembers(null);
+
+        Assert.Equal(2, filter.MemberCount);
+        Assert.Equal(["Trojão", "LoveBloodKil"], members.Select(m => m.Name));
+        Assert.Equal([GameClass.Ranger, GameClass.Cleric], members.Select(m => m.Class));
+        Assert.All(members, member => Assert.Equal(2001, member.ServerId));
+    }
+
+    [Fact]
     public void PartyDamageAndSharesExcludeBystandersAndFollowRosterChanges()
     {
         var filter = new PartyOnly();
