@@ -20,11 +20,12 @@ public sealed class DungeonSkillDamage
     {
         var total = _skills.Values.Sum(x => x.Damage);
         return _skills.Select(x => new DungeonSkillTotal(x.Key, data.SkillName(x.Key), x.Value.Damage,
-                x.Value.Hits, total > 0 ? x.Value.Damage / (double)total : 0))
+                x.Value.Hits, total > 0 ? x.Value.Damage / (double)total : 0,
+                x.Value.Damage / (double)Math.Max(1, x.Value.Hits)))
             .OrderByDescending(x => x.Damage).ToList();
     }
 
     public void NewSession() => _skills.Clear();
 }
 
-public sealed record DungeonSkillTotal(int SkillCode, string Name, long Damage, int Hits, double Share);
+public sealed record DungeonSkillTotal(int SkillCode, string Name, long Damage, int Hits, double Share, double Average);

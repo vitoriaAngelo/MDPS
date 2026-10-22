@@ -406,6 +406,8 @@ public partial class MainWindow : Window
         TotalDamage.Text = s is null ? "Aguardando seu combate" : $"{s.TotalDamage.ToString("N0", Pt)} de dano · {s.PlayerCount} jogadores";
         FightTime.Text = s is null ? "00:00" : $"{s.CombatMs / 60000:00}:{s.CombatMs / 1000 % 60:00}";
         FightState.Text = _selected is not null ? "HISTÓRICO" : _showDungeonTotal ? "TOTAL DA DG" : _demonstrating ? "SIMULAÇÃO" : s is null ? "AGUARDANDO" : s.IsActive ? "EM COMBATE" : "AO VIVO";
+        var stateColor = s is { IsActive: true } ? "#68E7CA" : s is null ? "#8B9CB3" : s.Reason == EncounterEndReason.Wipe ? "#F58B8B" : "#AAB8CB";
+        FightState.Foreground = Brush(stateColor);
         var visibleBoss = s is { IsActive: true, Boss: { MaxHpKnown: true, MaxHp: > 0, Hp: >= 0 } }
             ? s.Boss : null;
         BossName.Text = visibleBoss?.Name ?? s?.Title ?? "Nenhum combate da PT";
@@ -421,10 +423,10 @@ public partial class MainWindow : Window
         var selfClass = identity.Players.FirstOrDefault(p => p.Id == identity.SelfId)?.Class ?? GameClass.Unknown;
         if (selfClass == GameClass.Unknown)
             selfClass = SelfRecovery.ClassFromRecentHistory(_history, _tracker.SelfName, _tracker.SelfServerId, DateTimeOffset.UtcNow);
-        var rows = s?.Combatants.OrderByDescending(p => p.Damage).Select(p => new PlayerRow(
+        var rows = s?.Combatants.OrderByDescending(p => p.Damage).Select((p, rank) => new PlayerRow(
             p.Name + (p.IsSelf ? " · você" : ""), p.Damage.ToString("N0", Pt) + " de dano",
             Compact(p.Dps), (p.Share * 100).ToString("0.0", Pt) + "%",
-            max > 0 ? p.Damage / max * 100 : 0, p.IsSelf ? CurrentTheme.Main : "#B2C9F6",
+            max > 0 ? p.Damage / max * 100 : 0, p.IsSelf ? CurrentTheme.Main : RankColor(rank),
             IconOf(p.IsSelf && p.Class == GameClass.Unknown ? selfClass : p.Class))).ToList() ?? [];
         var missing = _selected is null && (s is null || s.IsActive) ? _partyOnly.MissingMembers(s) : [];
         foreach (var member in missing)
@@ -466,7 +468,8 @@ public partial class MainWindow : Window
         var maxSkill = skillTotals.FirstOrDefault()?.Damage ?? 1;
         SkillRows.ItemsSource = skillTotals.Select(x => new SkillDisplayRow(x.Name,
             x.Damage.ToString("N0", Pt), x.Hits.ToString("N0", Pt) + " acertos",
-            (x.Share * 100).ToString("0.0", Pt) + "%", x.Damage / (double)Math.Max(1, maxSkill) * 100)).ToList();
+            (x.Share * 100).ToString("0.0", Pt) + "%", x.Damage / (double)Math.Max(1, maxSkill) * 100,
+            x.Average.ToString("N0", Pt), "✦")).ToList();
         SkillsEmpty.Visibility = skillTotals.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
@@ -710,6 +713,14 @@ public partial class MainWindow : Window
     internal static string? IconOf(GameClass gameClass) => gameClass == GameClass.Unknown
         ? null : $"pack://application:,,,/Assets/Classes/{gameClass.ToString().ToLowerInvariant()}.png";
 
+    private static string RankColor(int rank) => rank switch
+    {
+        0 => "#F2CD70",
+        1 => "#D5DEE8",
+        2 => "#C58B62",
+        _ => "#B2C9F6"
+    };
+
     private static string CompactHealth(long hp) => hp switch
     {
         >= 1_000_000_000 => (hp / 1_000_000_000.0).ToString("0.00", Pt) + " bi",
@@ -932,5 +943,5 @@ internal sealed record PersonalSettings(bool ShowOwnDamage, int ThemeIndex = 0, 
 internal sealed record PanelTheme(string Main, string Boss, string Self);
 
 public sealed record PlayerRow(string Name, string Damage, string Dps, string Share, double Bar, string Color, string? Icon);
-public sealed record SkillDisplayRow(string Name, string Damage, string Hits, string Share, double Bar);
+public sealed record SkillDisplayRow(string Name, string Damage, string Hits, string Share, double Bar, string Average, string Icon);
 public sealed record FightChoice(string Label, FightRecord? Record, bool DungeonTotal = false);
