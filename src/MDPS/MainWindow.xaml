@@ -1,0 +1,177 @@
+<Window x:Class="MDPS.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+ Title="MDPS · AION 2 Global" Icon="Assets/mdps.ico" Width="282" Height="505" MinWidth="275" MinHeight="420" WindowStyle="None" ResizeMode="CanResizeWithGrip" Background="#101721" Topmost="True" ShowActivated="False" FontFamily="Segoe UI" WindowStartupLocation="CenterScreen">
+ <shell:WindowChrome.WindowChrome>
+  <shell:WindowChrome CaptionHeight="0" GlassFrameThickness="0" ResizeBorderThickness="6" CornerRadius="0" UseAeroCaptionButtons="False" />
+ </shell:WindowChrome.WindowChrome>
+ <Border x:Name="WindowBorder" BorderBrush="#334155" BorderThickness="1" Padding="12,10">
+  <Grid>
+  <Grid x:Name="FullPanel">
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <Grid MouseLeftButtonDown="DragHeader" Background="Transparent" Margin="0,0,0,10">
+    <StackPanel>
+     <TextBlock x:Name="LogoText" Text="M D P S" FontSize="17" FontWeight="Bold" Foreground="#68E7CA" />
+     <TextBlock Text="AION 2 GLOBAL  /  PT" Foreground="#8B9CB3" FontSize="9" Margin="0,1,0,0" />
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+     <Button x:Name="GearButton" Content="⚙" FontFamily="Segoe UI Symbol" FontSize="15" Click="ToggleActionsMenu" ToolTip="Ações do leitor" Margin="0,0,4,0" Padding="7,4" AutomationProperties.Name="Abrir ações" />
+     <Button x:Name="ResetButton" Content="↺" FontFamily="Segoe UI Symbol" FontSize="16" Click="ResetMeter" ToolTip="Zerar os números do painel; o histórico salvo continua disponível" Margin="0,0,4,0" Padding="7,4" AutomationProperties.Name="Zerar painel" />
+     <Button Content="—" Click="Minimize" ToolTip="Minimizar" Margin="0,0,4,0" Padding="7,5" />
+     <Button Content="×" Click="CloseWindow" ToolTip="Fechar" Padding="7,5" />
+    </StackPanel>
+   </Grid>
+   <Border Grid.Row="1" Background="#182331" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+    <Grid>
+     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+     <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <StackPanel>
+      <TextBlock Text="DPS DA PT" FontSize="9" Foreground="#8B9CB3" />
+      <TextBlock x:Name="PartyDps" Text="—" FontSize="25" FontWeight="SemiBold" Foreground="#68E7CA" Margin="0,1" />
+      <TextBlock x:Name="TotalDamage" Text="Aguardando combate" FontSize="10" Foreground="#AAB8CB" TextTrimming="CharacterEllipsis" />
+     </StackPanel>
+     <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
+      <TextBlock x:Name="FightTime" Text="00:00" FontFamily="Consolas" FontSize="18" HorizontalAlignment="Right" />
+      <TextBlock x:Name="FightState" Text="AO VIVO" Foreground="#8B9CB3" FontSize="9" HorizontalAlignment="Right" Margin="0,3,0,0" />
+     </StackPanel>
+     <Border x:Name="SelfMetricBorder" Grid.Row="1" Grid.ColumnSpan="2" BorderBrush="#30433E" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,7,0,0"
+      ToolTip="Soma da cura realizada por você desde a entrada no mapa atual, incluindo autocura. Reinicia ao trocar de mapa ou reiniciar a leitura. O HPS é do combate mostrado. Não separa overheal.">
+      <Grid>
+       <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <StackPanel>
+        <TextBlock x:Name="SelfMetricLabel" Text="SUA CURA NA DG" FontSize="9" Foreground="#8B9CB3" />
+        <TextBlock x:Name="SelfMetricValue" Text="—" Foreground="#A6EEA6" FontSize="18" FontWeight="SemiBold" Margin="0,1,0,0" />
+       </StackPanel>
+       <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+        <TextBlock x:Name="SelfRateLabel" Text="HPS" FontSize="9" Foreground="#8B9CB3" HorizontalAlignment="Right" />
+        <TextBlock x:Name="SelfRateValue" Text="—" Foreground="#A6EEA6" FontSize="18" FontWeight="SemiBold" Margin="0,1,0,0" />
+       </StackPanel>
+      </Grid>
+     </Border>
+    </Grid>
+   </Border>
+   <StackPanel Grid.Row="2" Margin="0,0,0,8">
+    <ComboBox x:Name="HistoryPicker" Height="24" SelectionChanged="SelectFight" ToolTip="Total atual e os últimos 10 combates de DG; ao selecionar, a PT daquele combate aparece abaixo">
+     <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" Foreground="#E8EDF5" FontSize="11" TextTrimming="CharacterEllipsis" /></DataTemplate></ComboBox.ItemTemplate>
+    </ComboBox>
+    <TextBlock x:Name="BossName" Text="Entre na DG com o leitor aberto" FontSize="11" FontWeight="SemiBold" Margin="0,7,0,4" TextTrimming="CharacterEllipsis" />
+    <StackPanel x:Name="BossVitals" Visibility="Collapsed" Margin="0,1,0,2">
+     <Grid Margin="0,0,0,4">
+      <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <TextBlock x:Name="BossHealthText" Foreground="#AAB8CB" FontSize="9" />
+      <TextBlock x:Name="BossPercent" Grid.Column="1" Foreground="#F5A3B5" FontSize="10" FontWeight="SemiBold" />
+     </Grid>
+     <ProgressBar x:Name="BossHp" Height="7" Minimum="0" Maximum="100" Value="0" Foreground="#E5849E" Background="#273345" BorderThickness="0" />
+     <TextBlock x:Name="BossLimitText" Visibility="Collapsed" Foreground="#AAB8CB" FontSize="9" Margin="0,4,0,0" />
+    </StackPanel>
+   </StackPanel>
+   <Grid Grid.Row="3" Margin="0,0,0,5">
+    <TextBlock Text="JOGADOR / DANO" Foreground="#8B9CB3" FontSize="9" />
+    <TextBlock Text="DPS        %" Foreground="#8B9CB3" FontSize="9" HorizontalAlignment="Right" />
+   </Grid>
+   <Grid Grid.Row="4">
+    <TextBlock x:Name="EmptyMessage" Text="Sua PT aparecerá quando o combate começar.&#10;Abra o leitor antes de entrar na DG." TextWrapping="Wrap" Foreground="#8B9CB3" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="270" TextAlignment="Center" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <ItemsControl x:Name="Players">
+      <ItemsControl.ItemTemplate><DataTemplate>
+       <Border Background="#182331" CornerRadius="6" Margin="0,0,0,4" Padding="8,6">
+        <Grid>
+         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="76"/><ColumnDefinition Width="40"/></Grid.ColumnDefinitions>
+         <StackPanel>
+          <Grid>
+           <Grid.ColumnDefinitions><ColumnDefinition Width="19"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+           <TextBlock Text="?" Foreground="#8B9CB3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Icon}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+           </TextBlock>
+           <Image Source="{Binding Icon}" Width="16" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+           <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="{Binding Color}" FontWeight="SemiBold" FontSize="11" TextTrimming="CharacterEllipsis" />
+          </Grid>
+          <TextBlock Text="{Binding Damage}" Foreground="#8B9CB3" FontSize="9" Margin="0,1,0,0" />
+          <ProgressBar Minimum="0" Maximum="100" Value="{Binding Bar}" Height="2" Margin="0,3,8,0" Foreground="{Binding Color}" Background="#273345" BorderThickness="0" />
+         </StackPanel>
+         <TextBlock Grid.Column="1" Text="{Binding Dps}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" />
+         <TextBlock Grid.Column="2" Text="{Binding Share}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="9" Foreground="#AAB8CB" />
+        </Grid>
+       </Border>
+      </DataTemplate></ItemsControl.ItemTemplate>
+     </ItemsControl>
+    </ScrollViewer>
+   </Grid>
+   <StackPanel Grid.Row="5" Margin="0,7,0,0">
+    <TextBlock x:Name="StatusText" Text="Iniciando leitor…" Foreground="#68E7CA" FontSize="9" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+    <TextBlock x:Name="DetailText" Visibility="Collapsed" />
+   </StackPanel>
+  </Grid>
+  <Grid x:Name="CompactPanel" Visibility="Collapsed">
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <Grid Grid.Row="0" MouseLeftButtonDown="DragHeader" Background="Transparent" Margin="0,0,0,5">
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+     <TextBlock x:Name="CompactLogo" Text="M D P S" Foreground="#68E7CA" FontWeight="Bold" FontSize="11" Margin="0,0,8,0" />
+     <TextBlock x:Name="CompactFightTime" Text="00:00" Foreground="#8B9CB3" FontSize="10" VerticalAlignment="Center" />
+    </StackPanel>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+     <Button x:Name="CompactGearButton" Content="⚙" FontFamily="Segoe UI Symbol" Click="ToggleActionsMenu" ToolTip="Configurações" Padding="5,1" Margin="0,0,3,0" />
+     <Button Content="↺" Click="ResetMeter" ToolTip="Zerar números" Padding="5,1" Margin="0,0,3,0" />
+     <Button Content="—" Click="Minimize" ToolTip="Minimizar" Padding="5,1" Margin="0,0,3,0" />
+     <Button Content="×" Click="CloseWindow" ToolTip="Fechar" Padding="5,1" />
+    </StackPanel>
+   </Grid>
+   <Border Grid.Row="1" Background="#27232D" CornerRadius="5" Padding="7,5" Margin="0,0,0,5">
+    <StackPanel>
+     <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <TextBlock x:Name="CompactBossName" Text="Aguardando combate" Foreground="#F5A3B5" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+      <TextBlock x:Name="CompactBossPercent" Grid.Column="1" Foreground="#F5A3B5" FontSize="10" FontWeight="SemiBold" Margin="6,0,0,0" />
+     </Grid>
+     <ProgressBar x:Name="CompactBossHp" Height="4" Minimum="0" Maximum="100" Foreground="#E5849E" Background="#273345" BorderThickness="0" Margin="0,4,0,0" />
+     <Grid Margin="0,3,0,0">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <TextBlock x:Name="CompactBossHealth" Foreground="#AAB8CB" FontSize="9" TextTrimming="CharacterEllipsis" />
+      <TextBlock x:Name="CompactBossLimit" Grid.Column="1" Foreground="#AAB8CB" FontSize="9" Margin="5,0,0,0" />
+     </Grid>
+    </StackPanel>
+   </Border>
+   <Grid Grid.Row="2" Margin="2,0,2,5">
+    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <TextBlock x:Name="CompactPartyDps" Text="PT —" Foreground="#68E7CA" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+    <TextBlock x:Name="CompactSelfMetric" Grid.Column="1" Text="Cura —" Foreground="#A6EEA6" FontSize="10" FontWeight="SemiBold" Margin="6,0,0,0" />
+   </Grid>
+   <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ItemsControl x:Name="CompactPlayers">
+     <ItemsControl.ItemTemplate><DataTemplate>
+      <Border Background="#182331" CornerRadius="4" Margin="0,0,0,3" Padding="5,4">
+       <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="45"/></Grid.ColumnDefinitions>
+        <TextBlock Text="?" Foreground="#8B9CB3" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+         <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed"/><Style.Triggers><DataTrigger Binding="{Binding Icon}" Value="{x:Null}"><Setter Property="Visibility" Value="Visible"/></DataTrigger></Style.Triggers></Style></TextBlock.Style>
+        </TextBlock>
+        <Image Source="{Binding Icon}" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="1" Text="{Binding Name}" Foreground="{Binding Color}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="2" Text="{Binding Dps, StringFormat={}{0} DPS}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="6,0" />
+        <TextBlock Grid.Column="3" Text="{Binding Share}" Foreground="#AAB8CB" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" />
+       </Grid>
+      </Border>
+     </DataTemplate></ItemsControl.ItemTemplate>
+    </ItemsControl>
+   </ScrollViewer>
+   <TextBlock x:Name="CompactStatus" Grid.Row="4" Foreground="#8B9CB3" FontSize="9" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+  </Grid>
+  <Popup x:Name="GearPopup" Placement="Bottom" VerticalOffset="6" StaysOpen="False" AllowsTransparency="True">
+   <Border Background="#182331" BorderBrush="#334155" BorderThickness="1" CornerRadius="9" Padding="8" Width="176">
+    <StackPanel>
+     <TextBlock Text="MEU PAINEL" Foreground="#8B9CB3" FontSize="10" Margin="8,4,0,8" />
+     <Button x:Name="ShowHealingButton" Content="✓ Minha cura" Click="ShowHealing" HorizontalContentAlignment="Left" Margin="0,0,0,5" />
+     <Button x:Name="ShowDamageButton" Content="Meu DPS" Click="ShowDamage" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
+     <TextBlock Text="VISUALIZAÇÃO" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
+     <Button x:Name="CompactModeButton" Content="Modo compacto" Click="ToggleCompactMode" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
+     <TextBlock Text="COR DO PAINEL" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
+     <ComboBox x:Name="ThemePicker" Height="25" Margin="0,0,0,8" ToolTip="Escolha uma cor para os destaques do painel">
+      <ComboBoxItem Content="Padrão"/><ComboBoxItem Content="Azul"/><ComboBoxItem Content="Roxo"/>
+      <ComboBoxItem Content="Rosa"/><ComboBoxItem Content="Dourado"/><ComboBoxItem Content="Vermelho"/>
+     </ComboBox>
+     <TextBlock Text="AÇÕES" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,6" />
+     <Button x:Name="LiveButton" Content="Ao vivo" Background="#226452" Click="StartLive" HorizontalContentAlignment="Left" Margin="0,0,0,5" />
+    </StackPanel>
+   </Border>
+  </Popup>
+  </Grid>
+ </Border>
+</Window>

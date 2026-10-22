@@ -1,0 +1,11 @@
+.dotnet/
+.cli-home/
+.nuget/
+upstream/
+**/bin/
+**/obj/
+dist/
+artifacts/
+release/
+**/user-data/
+dotnet-install.ps1
