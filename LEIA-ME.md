@@ -17,6 +17,7 @@ O Npcap é necessário para a leitura ao vivo: https://npcap.com/#download.
 ## Uso
 
 - **Engrenagem no topo:** escolha **Minha cura** ou **Meu DPS**, selecione entre a cor padrão e cinco cores alternativas e acesse Ao vivo. As escolhas ficam salvas neste computador.
+- **Verificar atualização:** procura uma versão mais recente no GitHub, baixa o instalador e abre a atualização automaticamente.
 - **Ao vivo:** detecta a conexão do AION 2 e começa a leitura. Aguarda o jogo se estiver fechado.
 - **Botão ↺ ao lado da engrenagem:** zera os números do combate mostrado e a cura acumulada na DG. Os combates já salvos continuam no histórico.
 - Ao entrar em uma DG diferente, o painel e a cura acumulada zeram automaticamente. Teleportes e recarregamentos dentro da mesma DG não zeram os valores.

@@ -1,5 +1,8 @@
 using System.Globalization;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
@@ -17,6 +20,7 @@ using AionMeter.Core.Demo;
 using AionMeter.Core.Events;
 using AionMeter.Core.Game;
 using AionMeter.Core.Storage;
+using AionMeter.Core.Updates;
 
 namespace MDPS;
 
@@ -159,6 +163,8 @@ public partial class MainWindow : Window
                 Render();
                 if (ResetButton.Content?.ToString() != "↺")
                     throw new InvalidOperationException("O botão de zerar não apareceu no topo.");
+                if (UpdateButton.Content?.ToString() != "Verificar atualização")
+                    throw new InvalidOperationException("O botão de atualização não apareceu na engrenagem.");
                 SetLocked(true);
                 if (!_locked || ((long)GetWindowLongPtr(_handle, -20) & 0x20) == 0)
                     throw new InvalidOperationException("O modo fixado não atravessou os cliques.");
@@ -180,7 +186,7 @@ public partial class MainWindow : Window
                 ResetMeter(this, new RoutedEventArgs());
                 if (_shown is not null || _dungeonHealing.Total() != 0)
                     throw new InvalidOperationException("Zerar painel não limpou o combate e a cura.");
-                File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "artifacts", "self-test.txt"), "PASS: PT, cura e DPS pessoal; boss e tempo; entrada na DG; menu; zerar; fixar/destravar; prévia renderizada.");
+                File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "artifacts", "self-test.txt"), "PASS: PT, cura e DPS pessoal; boss e tempo; entrada na DG; menu; atualizar; zerar; fixar/destravar; prévia renderizada.");
                 Application.Current.Shutdown(0);
             }
             catch (Exception ex)
@@ -521,6 +527,69 @@ public partial class MainWindow : Window
         SelfMetricBorder.ToolTip = _showOwnDamage
             ? "Seu dano total e DPS no combate mostrado. Escolha Minha cura na engrenagem para ver a cura acumulada na DG."
             : "Soma da cura realizada por você desde a entrada no mapa atual, incluindo autocura. O HPS é do combate mostrado. Não separa overheal.";
+    }
+
+    private async void CheckForUpdate(object sender, RoutedEventArgs e)
+    {
+        GearPopup.IsOpen = false;
+        UpdateButton.IsEnabled = false;
+        SetStatus("Procurando atualização…");
+        try
+        {
+            var current = UpdateFeed.Normalize(Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0));
+            using var feed = new UpdateFeed($"MDPS/{current}");
+            var latest = await feed.GetLatestAsync();
+            if (latest is null)
+            {
+                MessageBox.Show(this, "Não foi possível encontrar uma versão publicada.", "Atualização do MDPS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                SetStatus("Nenhuma versão publicada foi encontrada");
+                return;
+            }
+            if (latest.Version <= current)
+            {
+                MessageBox.Show(this, $"Você já está usando a versão mais recente ({current}).", "Atualização do MDPS",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                SetStatus($"MDPS {current} está atualizado");
+                return;
+            }
+            if (latest.Installer is null)
+                throw new InvalidDataException("A versão mais recente não possui instalador para Windows.");
+
+            var answer = MessageBox.Show(this,
+                $"A versão {latest.Version} está disponível.\n\nDeseja baixar e instalar agora?",
+                "Atualização do MDPS", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (answer != MessageBoxResult.Yes)
+            {
+                SetStatus($"Atualização {latest.Version} disponível");
+                return;
+            }
+
+            var progress = new Progress<double>(value =>
+                SetStatus($"Baixando atualização… {value * 100:0}%"));
+            string folder = Path.Combine(Path.GetTempPath(), "MDPS", "updates", latest.Tag);
+            string installer = await feed.DownloadAsync(latest.Installer, folder, progress);
+            SetStatus("Abrindo o instalador…");
+            Process.Start(new ProcessStartInfo(installer) { UseShellExecute = true });
+            Close();
+        }
+        catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException
+            or InvalidDataException or TaskCanceledException)
+        {
+            SetStatus("Não foi possível atualizar");
+            MessageBox.Show(this, "Não foi possível concluir a atualização.\n\n" + ex.Message,
+                "Atualização do MDPS", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            UpdateButton.IsEnabled = true;
+        }
+    }
+
+    private void SetStatus(string text)
+    {
+        StatusText.Text = text;
+        CompactStatus.Text = text;
     }
 
     private void ReadSettings()

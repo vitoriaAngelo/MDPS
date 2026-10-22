@@ -6,6 +6,13 @@ namespace AionMeter.Tests;
 
 public class UpdateTests
 {
+    [Fact]
+    public void Update_feed_points_to_the_public_MDPS_repository()
+    {
+        Assert.Equal("vitoriaAngelo/MDPS", UpdateFeed.Repository);
+        Assert.Contains("vitoriaAngelo/MDPS", UpdateFeed.LatestReleaseApi);
+    }
+
     // Shape of GitHub's /releases/latest answer (trimmed), as the meter receives it.
     private const string Release = """
         {"tag_name":"v0.2.0","html_url":"https://github.com/o/r/releases/tag/v0.2.0","draft":false,"prerelease":false,
