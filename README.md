@@ -8,7 +8,7 @@
 [![Downloads](https://img.shields.io/github/downloads/vitoriaAngelo/MDPS/total?style=for-the-badge&color=9bd8cf)](https://github.com/vitoriaAngelo/MDPS/releases)
 [![Licença GPL-3.0](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-c9b6e4?style=for-the-badge)](LICENSE)
 
-**Feito com carinho por [@misttylol](https://github.com/misttylol)**
+**Feito com carinho por [@misttylol](https://github.com/misttylol)**  `n`[♡ Twitch · twitch.tv/misttylol](https://www.twitch.tv/misttylol)
 
 </div>
 
@@ -89,3 +89,4 @@ O código é distribuído sob a licença **GPL-3.0**.
 ```
 
 <div align="center">♡ obrigada por usar o MDPS ♡</div>
+
