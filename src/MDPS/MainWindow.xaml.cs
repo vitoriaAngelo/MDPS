@@ -594,15 +594,6 @@ public partial class MainWindow : Window
         }
         GearPopup.PlacementTarget = _autoCollapsed ? IdleGearButton : _compactMode ? CompactGearButton : GearButton;
         if (resize && !_autoCollapsed && wasCollapsed) RestoreLayout();
-        if (!_args.Contains("--self-test") && !_args.Contains("--smoke-live"))
-        {
-            if (_autoCollapsed && IsVisible) Hide();
-            else if (!_autoCollapsed && !IsVisible)
-            {
-                Show();
-                WindowState = WindowState.Normal;
-            }
-        }
     }
 
     private void UpdateMetricMenu()
