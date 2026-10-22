@@ -1,5 +1,5 @@
 #define MyAppName "MDPS"
-#define MyAppVersion "1.4.3"
+#define MyAppVersion "1.4.4"
 #define MyAppPublisher "@misttylol"
 #define MyAppExeName "MDPS.exe"
 

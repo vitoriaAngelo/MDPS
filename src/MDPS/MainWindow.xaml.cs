@@ -428,16 +428,18 @@ public partial class MainWindow : Window
             Compact(p.Dps), (p.Share * 100).ToString("0.0", Pt) + "%",
             max > 0 ? p.Damage / max * 100 : 0, p.IsSelf ? CurrentTheme.Main : RankColor(rank),
             IconOf(p.IsSelf && p.Class == GameClass.Unknown ? selfClass : p.Class))).ToList() ?? [];
-        var missing = _selected is null && (s is null || s.IsActive) ? _partyOnly.MissingMembers(s) : [];
+        var missing = _selected is null && GameData.IsDungeonMap(identity.MapId) && (s is null || s.IsActive)
+            ? _partyOnly.MissingMembers(s) : [];
         foreach (var member in missing)
         {
-            bool isSelf = string.Equals(member.Name, _tracker.SelfName, StringComparison.OrdinalIgnoreCase)
-                && (member.ServerId == 0 || _tracker.SelfServerId == 0 || member.ServerId == _tracker.SelfServerId);
+            bool isSelf = string.Equals(member.Name, _tracker.SelfName, StringComparison.OrdinalIgnoreCase);
+            if (rows.Any(p => string.Equals(p.Name.Replace(" · você", ""), member.Name, StringComparison.OrdinalIgnoreCase)))
+                continue;
             rows.Add(new PlayerRow(member.Name + (isSelf ? " · você" : ""),
                 s is null ? "Aguardando combate" : "Sem dados de dano", "—", "—", 0,
                 isSelf ? CurrentTheme.Main : "#8B9CB3", IconOf(isSelf && member.Class == GameClass.Unknown ? selfClass : member.Class)));
         }
-        if (_selected is null && !rows.Any(p => p.Name == _tracker.SelfName + " · você"))
+        if (_selected is null && !rows.Any(p => p.Name.EndsWith(" · você", StringComparison.OrdinalIgnoreCase)))
             rows.Insert(0, new PlayerRow((_tracker.SelfName ?? "Você") + " · você",
                 s is null ? "Aguardando seu combate" : "Sem dados de dano", "—", "—", 0,
                 CurrentTheme.Main, IconOf(selfClass)));
