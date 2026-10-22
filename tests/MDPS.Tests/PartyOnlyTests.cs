@@ -104,6 +104,29 @@ public class PartyOnlyTests
     }
 
     [Fact]
+    public void PartyTimerStartsAtFirstVisiblePartyHitInsteadOfAnOutsidersPull()
+    {
+        var filter = new PartyOnly();
+        filter.Update(new PartyRosterEvent(1000, [new PartyMemberInfo("Eu", 2001, 1, 0, 0, GameClass.Cleric)]));
+        var fight = CrowdFight();
+        fight = fight with
+        {
+            CombatMs = 76_000,
+            Combatants =
+            [
+                fight.Combatants[0] with { Damage = 1_920_000, FirstHitMs = 17_000, LastHitMs = 77_000 },
+                fight.Combatants[2] with { FirstHitMs = 1_000, LastHitMs = 77_000 }
+            ]
+        };
+
+        var visible = filter.Filter(fight)!;
+
+        Assert.Equal(60_000, visible.CombatMs);
+        Assert.Equal(32_000, visible.PartyDps);
+        Assert.Equal(32_000, Assert.Single(visible.Combatants).Dps);
+    }
+
+    [Fact]
     public void SameNameOnAnotherServerAndUnknownActorsStayHidden()
     {
         var filter = new PartyOnly();

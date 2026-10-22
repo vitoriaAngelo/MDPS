@@ -166,7 +166,7 @@ public partial class MainWindow : Window
                     throw new InvalidOperationException("O botão de zerar não apareceu no topo.");
                 if (UpdateButton.Content?.ToString() != "Verificar atualização")
                     throw new InvalidOperationException("O botão de atualização não apareceu na engrenagem.");
-                if (!VersionCreditText.Text.Contains("@misttylol") || !VersionCreditText.Text.Contains("v1.1.1"))
+                if (!VersionCreditText.Text.Contains("@misttylol") || !VersionCreditText.Text.Contains($"v{CurrentVersion()}"))
                     throw new InvalidOperationException("A versão e o crédito não apareceram na engrenagem.");
                 SetLocked(true);
                 if (!_locked || ((long)GetWindowLongPtr(_handle, -20) & 0x20) == 0)
@@ -241,9 +241,9 @@ public partial class MainWindow : Window
         // The closure belongs to this tracker: switching modes never saves a demonstration as a real fight.
         _tracker.EncounterFinished += record =>
         {
-            _dungeonDamage.AddFinished(record);
-            if (demo) return;
             record = _partyOnly.Filter(record);
+            if (record.Summary.TotalDamage > 0) _dungeonDamage.AddFinished(record);
+            if (demo) return;
             if (record.Summary.Combatants.Count == 0) return;
             record = _partyOnly.IncludeRoster(record);
             try
@@ -356,8 +356,8 @@ public partial class MainWindow : Window
         var identity = _tracker.ExportCache();
         _partyOnly.ObserveKnownPlayers(identity.Players);
         _partyOnly.InferDungeonRoster(identity);
-        var current = _tracker.Snapshot(null, now);
-        var projected = _partyOnly.Filter(_selected?.Summary ?? _dungeonDamage.Snapshot(current));
+        var current = _partyOnly.Filter(_tracker.Snapshot(null, now));
+        var projected = _selected is not null ? _partyOnly.Filter(_selected.Summary) : _dungeonDamage.Snapshot(current);
         _shown = projected?.Combatants.Count > 0 ? projected : null;
         var s = _shown;
         _timer.Interval = s?.IsActive == true ? TimeSpan.FromMilliseconds(250) : TimeSpan.FromSeconds(1);

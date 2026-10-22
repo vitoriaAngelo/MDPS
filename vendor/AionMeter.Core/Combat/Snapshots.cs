@@ -32,7 +32,9 @@ public sealed record CombatantSnapshot(
     int GearScore = 0,
     long CombatPower = 0,
     long? Healing = null,
-    double? Hps = null)
+    double? Hps = null,
+    long FirstHitMs = 0,
+    long LastHitMs = 0)
 {
     /// <summary>The "summons, owner unknown" pseudo-row (see <see cref="Combatant.UnknownSummonsId"/>).</summary>
     [System.Text.Json.Serialization.JsonIgnore]

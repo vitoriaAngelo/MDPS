@@ -105,12 +105,23 @@ public sealed class PartyOnly
         lock (_gate) { roster = AllMembers(); actorIds = new HashSet<uint>(_actorIds); }
         var members = snapshot.Combatants.Where(c => actorIds.Contains(c.ActorId) || IsMember(c, roster)).ToArray();
         long damage = members.Sum(c => c.Damage);
-        var rows = members.Select(c => c with { Share = damage > 0 ? (double)c.Damage / damage : 0 }).ToArray();
+        var timed = members.Where(c => c.Damage > 0 && c.FirstHitMs > 0 && c.LastHitMs >= c.FirstHitMs).ToArray();
+        long combatMs = timed.Length > 0
+            ? Math.Max(1_000, timed.Max(c => c.LastHitMs) - timed.Min(c => c.FirstHitMs))
+            : snapshot.CombatMs;
+        double seconds = Math.Max(0.001, combatMs / 1000.0);
+        var rows = members.Select(c => c with
+        {
+            Dps = c.Damage / seconds,
+            Hps = c.Healing / seconds,
+            Share = damage > 0 ? (double)c.Damage / damage : 0
+        }).ToArray();
         return snapshot with
         {
             Combatants = rows,
+            CombatMs = combatMs,
             TotalDamage = damage,
-            PartyDps = rows.Sum(c => c.Dps),
+            PartyDps = damage / seconds,
             Attackers = rows.Length
         };
     }
