@@ -200,7 +200,7 @@
      <Button x:Name="ShowDamageButton" Content="Meu DPS" Click="ShowDamage" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
      <TextBlock Text="VISUALIZAÇÃO" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
      <Button x:Name="CompactModeButton" Content="Modo compacto" Click="ToggleCompactMode" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
-     <Button x:Name="AutoOverlayButton" Content="✓ Recolher fora da DG" Click="ToggleAutoOverlay" HorizontalContentAlignment="Left" Margin="0,0,0,8" ToolTip="Vira uma pequena barra fora da DG e abre automaticamente ao entrar" />
+     <Button x:Name="AutoOverlayButton" Content="✓ Ícone na bandeja fora da DG" Click="ToggleAutoOverlay" HorizontalContentAlignment="Left" Margin="0,0,0,8" ToolTip="Deixa somente o ícone do MDPS na bandeja do Windows fora da DG" />
      <TextBlock Text="COR DO PAINEL" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
      <ComboBox x:Name="ThemePicker" Height="25" Margin="0,0,0,8" ToolTip="Escolha uma cor para os destaques do painel">
       <ComboBoxItem Content="Padrão"/><ComboBoxItem Content="Azul"/><ComboBoxItem Content="Roxo"/>

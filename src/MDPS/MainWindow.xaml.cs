@@ -110,6 +110,8 @@ public partial class MainWindow : Window
         if (!showKey || !_lockHotkey || !resetKey)
             StatusText.Text = "Atalho ocupado · use a bandeja do Windows para destravar";
         if (!_args.Contains("--self-test")) InitTray();
+        if (!_args.Contains("--self-test") && !_args.Contains("--smoke-live"))
+            ApplyAutoOverlay(false, false);
         _timer.Start();
         if (_args.Contains("--self-test"))
         {
@@ -542,7 +544,7 @@ public partial class MainWindow : Window
     {
         GearPopup.IsOpen = false;
         _autoOverlay = !_autoOverlay;
-        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Recolher fora da DG";
+        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Ícone na bandeja fora da DG";
         ApplyAutoOverlay(GameData.IsDungeonMap(_tracker.ExportCache().MapId), true);
         SaveSettings();
     }
@@ -592,6 +594,15 @@ public partial class MainWindow : Window
         }
         GearPopup.PlacementTarget = _autoCollapsed ? IdleGearButton : _compactMode ? CompactGearButton : GearButton;
         if (resize && !_autoCollapsed && wasCollapsed) RestoreLayout();
+        if (!_args.Contains("--self-test") && !_args.Contains("--smoke-live"))
+        {
+            if (_autoCollapsed && IsVisible) Hide();
+            else if (!_autoCollapsed && !IsVisible)
+            {
+                Show();
+                WindowState = WindowState.Normal;
+            }
+        }
     }
 
     private void UpdateMetricMenu()
@@ -685,7 +696,7 @@ public partial class MainWindow : Window
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) { }
-        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Recolher fora da DG";
+        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Ícone na bandeja fora da DG";
     }
 
     private void SaveSettings()
