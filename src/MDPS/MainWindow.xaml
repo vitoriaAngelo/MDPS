@@ -191,6 +191,7 @@
    <TextBlock Text="M D P S" Foreground="#68E7CA" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
    <TextBlock Grid.Column="1" Text="Aguardando DG" Foreground="#8B9CB3" FontSize="10" VerticalAlignment="Center" Margin="10,0" />
    <StackPanel Grid.Column="2" Orientation="Horizontal">
+    <TextBlock x:Name="IdleClock" Text="00:00" Foreground="#AAB8CB" FontFamily="Consolas" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0" />
     <Button x:Name="IdleGearButton" Content="⚙" FontFamily="Segoe UI Symbol" Click="ToggleActionsMenu" ToolTip="Configurações" Padding="5,1" Margin="0,0,3,0" />
     <Button Content="×" Click="CloseWindow" ToolTip="Fechar" Padding="5,1" />
    </StackPanel>

@@ -464,6 +464,7 @@ public partial class MainWindow : Window
             StatusText.Text = $"PT provável: {_partyOnly.MemberCount} nomes · confirme se todos são da PT";
         if (_storageError is not null) StatusText.Text = _storageError;
         CompactStatus.Text = StatusText.Text;
+        IdleClock.Text = DateTime.Now.ToString("HH:mm");
         var skillTotals = _dungeonSkills.Snapshot(_data);
         var maxSkill = skillTotals.FirstOrDefault()?.Damage ?? 1;
         SkillRows.ItemsSource = skillTotals.Select(x => new SkillDisplayRow(x.Name,
@@ -580,13 +581,13 @@ public partial class MainWindow : Window
         CompactPanel.Visibility = !_autoCollapsed && _compactMode ? Visibility.Visible : Visibility.Collapsed;
         WindowBorder.Padding = _autoCollapsed ? new Thickness(7, 4, 7, 4) :
             _compactMode ? new Thickness(7, 5, 7, 4) : new Thickness(12, 10, 12, 10);
-        MinWidth = _autoCollapsed ? 210 : _compactMode ? 240 : 275;
+        MinWidth = _autoCollapsed ? 280 : _compactMode ? 240 : 275;
         MinHeight = _autoCollapsed ? 34 : _compactMode ? 165 : 420;
         if (resize)
         {
             if (_autoCollapsed)
             {
-                Width = 225;
+                Width = 310;
                 Height = 38;
             }
             else
