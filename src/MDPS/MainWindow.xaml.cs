@@ -348,6 +348,10 @@ public partial class MainWindow : Window
             newSession = true;
         if (gameEvent is DamageEvent skillHit)
             _dungeonSkills.Observe(skillHit, identityBefore.SelfId, identityBefore.MapId, _data);
+        if (gameEvent is ZoneChangedEvent zoneChange && !zoneChange.IsTeleport)
+            ApplyAutoOverlay(zoneChange.IsDungeon || GameData.IsDungeonMap(zoneChange.MapId), true);
+        else if (gameEvent is InstanceTimerEvent)
+            ApplyAutoOverlay(true, true);
         _tracker.Process(gameEvent);
         if (gameEvent is HealEvent heal) _dungeonHealing.ObserveHeal(heal, _tracker.ExportCache().SelfId);
         if (changedZone && !newSession && !GameData.IsDungeonMap(previousMapId)) _partyOnly.Reset();
@@ -359,10 +363,6 @@ public partial class MainWindow : Window
         _dungeonHealing.NewSession();
         _dungeonDamage.NewSession();
         _dungeonSkills.NewSession();
-        if (gameEvent is ZoneChangedEvent zone)
-            ApplyAutoOverlay(zone.IsDungeon || GameData.IsDungeonMap(zone.MapId), true);
-        else if (gameEvent is InstanceTimerEvent)
-            ApplyAutoOverlay(true, true);
         Dispatcher.BeginInvoke(() =>
         {
             if (_closing) return;
