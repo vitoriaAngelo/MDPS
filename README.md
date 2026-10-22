@@ -2,6 +2,8 @@
 
 Leitor de DPS e cura da PT para **AION 2 Global**, com painel compacto para ficar sobre o jogo.
 
+**Versão atual: 1.1.1 · Criado por @misttylol**
+
 ![Prévia do MDPS](src/MDPS/Assets/mdps-preview.png)
 
 ## Download

@@ -2,6 +2,8 @@
 
 Leitor para Windows 10/11 de 64 bits com interface em português.
 
+**Versão 1.1.1 · Criado por @misttylol**
+
 ## Download e instalação
 
 Na página **Releases** do GitHub, escolha uma destas opções:

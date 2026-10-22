@@ -58,6 +58,7 @@ public partial class MainWindow : Window
     {
         _args = args;
         InitializeComponent();
+        VersionCreditText.Text = $"MDPS v{CurrentVersion()} · criado por @misttylol";
         ReadSettings();
         UpdateMetricMenu();
         ThemePicker.SelectedIndex = _themeIndex;
@@ -165,6 +166,8 @@ public partial class MainWindow : Window
                     throw new InvalidOperationException("O botão de zerar não apareceu no topo.");
                 if (UpdateButton.Content?.ToString() != "Verificar atualização")
                     throw new InvalidOperationException("O botão de atualização não apareceu na engrenagem.");
+                if (!VersionCreditText.Text.Contains("@misttylol") || !VersionCreditText.Text.Contains("v1.1.1"))
+                    throw new InvalidOperationException("A versão e o crédito não apareceram na engrenagem.");
                 SetLocked(true);
                 if (!_locked || ((long)GetWindowLongPtr(_handle, -20) & 0x20) == 0)
                     throw new InvalidOperationException("O modo fixado não atravessou os cliques.");
@@ -536,7 +539,7 @@ public partial class MainWindow : Window
         SetStatus("Procurando atualização…");
         try
         {
-            var current = UpdateFeed.Normalize(Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0));
+            var current = CurrentVersion();
             using var feed = new UpdateFeed($"MDPS/{current}");
             var latest = await feed.GetLatestAsync();
             if (latest is null)
@@ -591,6 +594,9 @@ public partial class MainWindow : Window
         StatusText.Text = text;
         CompactStatus.Text = text;
     }
+
+    private static Version CurrentVersion() =>
+        UpdateFeed.Normalize(Assembly.GetExecutingAssembly().GetName().Version ?? new Version(1, 0, 0));
 
     private void ReadSettings()
     {

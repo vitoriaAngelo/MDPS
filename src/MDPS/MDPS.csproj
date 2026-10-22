@@ -8,7 +8,10 @@
     <Nullable>enable</Nullable>
     <AssemblyName>MDPS</AssemblyName>
     <ApplicationIcon>Assets/mdps.ico</ApplicationIcon>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
+    <Authors>@misttylol</Authors>
+    <Company>@misttylol</Company>
+    <Description>Leitor de DPS e cura da PT para AION 2 Global, criado por @misttylol.</Description>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>

@@ -170,6 +170,7 @@
      <TextBlock Text="AÇÕES" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,6" />
      <Button x:Name="UpdateButton" Content="Verificar atualização" Click="CheckForUpdate" HorizontalContentAlignment="Left" Margin="0,0,0,5" />
      <Button x:Name="LiveButton" Content="Ao vivo" Background="#226452" Click="StartLive" HorizontalContentAlignment="Left" Margin="0,0,0,5" />
+     <TextBlock x:Name="VersionCreditText" Text="MDPS · criado por @misttylol" Foreground="#8B9CB3" FontSize="9" TextAlignment="Center" Margin="2,7,2,2" />
     </StackPanel>
    </Border>
   </Popup>
