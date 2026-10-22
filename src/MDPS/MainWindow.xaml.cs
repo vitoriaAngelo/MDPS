@@ -73,8 +73,8 @@ public partial class MainWindow : Window
         Height = 505;
         MinHeight = 420;
         ApplyCompactMode(false);
-        ApplyAutoOverlay(GameData.IsDungeonMap(_tracker?.ExportCache().MapId ?? 0), false);
         if (!_args.Contains("--self-test") && !_args.Contains("--smoke-live")) RestoreLayout();
+        ApplyAutoOverlay(GameData.IsDungeonMap(_tracker?.ExportCache().MapId ?? 0), true);
         ReadHistory();
         RefreshHistory();
         _timer.Tick += (_, _) => Render();
@@ -187,6 +187,13 @@ public partial class MainWindow : Window
                 var encoder = new PngBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bitmap));
                 using (var stream = File.Create(Path.Combine(AppContext.BaseDirectory, "artifacts", "preview.png"))) encoder.Save(stream);
+                _autoOverlay = true;
+                ApplyAutoOverlay(false, true);
+                if (!_autoCollapsed || IdleOverlay.Visibility != Visibility.Visible || Height > 50)
+                    throw new InvalidOperationException("O overlay não recolheu corretamente fora da DG.");
+                ApplyAutoOverlay(true, true);
+                if (_autoCollapsed || FullPanel.Visibility != Visibility.Visible || Height < 420)
+                    throw new InvalidOperationException("O overlay não restaurou o painel ao entrar na DG.");
                 ProcessEvent(new ZoneChangedEvent(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(), 600092, "DG de teste", true));
                 Render();
                 if (_shown is not null || _dungeonHealing.Total() != 0 || BossVitals.Visibility != Visibility.Collapsed)
@@ -523,10 +530,10 @@ public partial class MainWindow : Window
     private void ToggleCompactMode(object sender, RoutedEventArgs e)
     {
         GearPopup.IsOpen = false;
-        SaveLayout();
+        if (!_autoCollapsed) SaveLayout();
         _compactMode = !_compactMode;
         ApplyCompactMode(true);
-        RestoreLayout();
+        if (!_autoCollapsed) RestoreLayout();
         SaveSettings();
         Render();
     }
@@ -542,6 +549,7 @@ public partial class MainWindow : Window
 
     private void ApplyCompactMode(bool resize)
     {
+        CompactModeButton.Content = _compactMode ? "✓ Modo compacto" : "Modo compacto";
         if (_autoCollapsed) return;
         FullPanel.Visibility = _compactMode ? Visibility.Collapsed : Visibility.Visible;
         CompactPanel.Visibility = _compactMode ? Visibility.Visible : Visibility.Collapsed;
@@ -553,26 +561,37 @@ public partial class MainWindow : Window
             Width = _compactMode ? 290 : 282;
             Height = _compactMode ? 245 : 505;
         }
-        CompactModeButton.Content = _compactMode ? "✓ Modo compacto" : "Modo compacto";
         GearPopup.PlacementTarget = _compactMode ? CompactGearButton : GearButton;
     }
 
     private void ApplyAutoOverlay(bool inDungeon, bool resize)
     {
-        _autoCollapsed = _autoOverlay && !inDungeon;
+        var collapse = _autoOverlay && !inDungeon;
+        var wasCollapsed = _autoCollapsed;
+        if (collapse && !_autoCollapsed) SaveLayout();
+        _autoCollapsed = collapse;
         IdleOverlay.Visibility = _autoCollapsed ? Visibility.Visible : Visibility.Collapsed;
         FullPanel.Visibility = !_autoCollapsed && !_compactMode ? Visibility.Visible : Visibility.Collapsed;
         CompactPanel.Visibility = !_autoCollapsed && _compactMode ? Visibility.Visible : Visibility.Collapsed;
         WindowBorder.Padding = _autoCollapsed ? new Thickness(7, 4, 7, 4) :
             _compactMode ? new Thickness(7, 5, 7, 4) : new Thickness(12, 10, 12, 10);
-        if (resize)
-        {
-            Width = _autoCollapsed ? 225 : _compactMode ? 290 : 282;
-            Height = _autoCollapsed ? 38 : _compactMode ? 245 : 505;
-        }
         MinWidth = _autoCollapsed ? 210 : _compactMode ? 240 : 275;
         MinHeight = _autoCollapsed ? 34 : _compactMode ? 165 : 420;
+        if (resize)
+        {
+            if (_autoCollapsed)
+            {
+                Width = 225;
+                Height = 38;
+            }
+            else
+            {
+                Width = _compactMode ? 290 : 282;
+                Height = _compactMode ? 245 : 505;
+            }
+        }
         GearPopup.PlacementTarget = _autoCollapsed ? IdleGearButton : _compactMode ? CompactGearButton : GearButton;
+        if (resize && !_autoCollapsed && wasCollapsed) RestoreLayout();
     }
 
     private void UpdateMetricMenu()
@@ -825,6 +844,7 @@ public partial class MainWindow : Window
 
     private void SaveLayout()
     {
+        if (_autoCollapsed) return;
         if (!double.IsFinite(Left) || !double.IsFinite(Top)) return;
         try
         {
