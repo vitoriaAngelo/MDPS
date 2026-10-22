@@ -650,8 +650,8 @@ public partial class MainWindow : Window
                 SetStatus($"Baixando atualização… {value * 100:0}%"));
             string folder = Path.Combine(Path.GetTempPath(), "MDPS", "updates", latest.Tag);
             string installer = await feed.DownloadAsync(latest.Installer, folder, progress);
-            SetStatus("Abrindo o instalador…");
-            Process.Start(new ProcessStartInfo(installer) { UseShellExecute = true });
+            SetStatus("Instalando atualização e reiniciando…");
+            InstallAndRestart(installer);
             Close();
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or UnauthorizedAccessException
@@ -665,6 +665,28 @@ public partial class MainWindow : Window
         {
             UpdateButton.IsEnabled = true;
         }
+    }
+
+    private static void InstallAndRestart(string installer)
+    {
+        var executable = Environment.ProcessPath ?? throw new InvalidOperationException("Executável do MDPS não encontrado.");
+        var script = Path.Combine(Path.GetTempPath(), "MDPS", "updates", "restart-mdps.cmd");
+        Directory.CreateDirectory(Path.GetDirectoryName(script)!);
+        var pid = Environment.ProcessId;
+        var batch = $"@echo off\r\n" +
+            ":wait\r\n" +
+            $"tasklist /FI \"PID eq {pid}\" | find \"{pid}\" >nul\r\n" +
+            "if not errorlevel 1 (timeout /t 1 /nobreak >nul & goto wait)\r\n" +
+            $"start \"\" /wait \"{installer}\" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART\r\n" +
+            $"start \"\" \"{executable}\"\r\n" +
+            "del \"%~f0\"\r\n";
+        File.WriteAllText(script, batch);
+        Process.Start(new ProcessStartInfo("cmd.exe", $"/c \"{script}\"")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
+        });
     }
 
     private void SetStatus(string text)
