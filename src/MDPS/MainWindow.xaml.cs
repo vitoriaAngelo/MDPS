@@ -413,7 +413,7 @@ public partial class MainWindow : Window
         Players.ItemsSource = rows;
         CompactPlayers.ItemsSource = rows;
         CompactFightTime.Text = FightTime.Text;
-        CompactPartyDps.Text = "PT " + PartyDps.Text + " DPS";
+        CompactPartyDps.Text = "DPS TOTAL " + PartyDps.Text;
         CompactSelfMetric.Text = (_showOwnDamage ? "Dano " : "Cura ") + SelfMetricValue.Text;
         CompactBossName.Text = visibleBoss?.Name ?? "Combate da PT";
         CompactBossPercent.Text = BossPercent.Text;
