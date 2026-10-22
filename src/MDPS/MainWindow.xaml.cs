@@ -466,6 +466,7 @@ public partial class MainWindow : Window
         CompactStatus.Text = StatusText.Text;
         IdleClock.Text = DateTime.Now.ToString("HH:mm");
         FullClock.Text = IdleClock.Text;
+        CompactClock.Text = IdleClock.Text;
         var skillTotals = _dungeonSkills.Snapshot(_data);
         var maxSkill = skillTotals.FirstOrDefault()?.Damage ?? 1;
         SkillRows.ItemsSource = skillTotals.Select(x => new SkillDisplayRow(x.Name,

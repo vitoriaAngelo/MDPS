@@ -24,6 +24,7 @@ if ($Installer) {
     $iscc = @(
         (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source,
         (Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe'),
+        (Join-Path $PSScriptRoot 'inno\ISCC.exe'),
         'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
         'C:\Program Files\Inno Setup 6\ISCC.exe'
     ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1

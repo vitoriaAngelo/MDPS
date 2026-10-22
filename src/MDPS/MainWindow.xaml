@@ -164,6 +164,7 @@
    <Grid Grid.Row="0" MouseLeftButtonDown="DragHeader" Background="Transparent" Margin="0,0,0,5">
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
      <TextBlock x:Name="CompactLogo" Text="M D P S" Foreground="#68E7CA" FontWeight="Bold" FontSize="11" Margin="0,0,8,0" />
+     <TextBlock x:Name="CompactClock" Text="00:00" Foreground="#F4A7BB" FontFamily="Consolas" FontSize="10" VerticalAlignment="Center" Margin="0,0,7,0" />
      <TextBlock x:Name="CompactFightTime" Text="00:00" Foreground="#8B9CB3" FontSize="10" VerticalAlignment="Center" />
     </StackPanel>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
