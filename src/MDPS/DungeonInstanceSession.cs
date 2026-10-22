@@ -12,7 +12,9 @@ public sealed class DungeonInstanceSession
     {
         // Ticket reentries can report a server map id that is not in the local dungeon table.
         // The instance countdown itself is the reliable signal; boss-limit timers are excluded.
-        if (timer.Kind == InstanceTimerEvent.BossLimit)
+        // Kind 1 is the entry countdown and kind 2 is the dungeon timer. Other
+        // timers belong to encounters or UI effects and must not reset the run.
+        if (timer.Kind is not (1 or 2) || timer.Kind == InstanceTimerEvent.BossLimit)
             return false;
 
         var key = (timer.MapId, timer.Kind);
