@@ -42,6 +42,7 @@ public partial class MainWindow : Window
     private readonly DungeonHealingTotal _dungeonHealing = new();
     private readonly DungeonDamageTotal _dungeonDamage = new();
     private readonly PartyOnly _partyOnly = new();
+    private readonly DungeonInstanceSession _instanceSession = new();
     private bool _demonstrating, _locked, _lockHotkey, _closing;
     private bool _showOwnDamage;
     private bool _compactMode;
@@ -328,6 +329,8 @@ public partial class MainWindow : Window
             && changed.MapId != previousMapId;
         var newSession = gameEvent is ZoneChangedEvent incoming
             && DungeonEntryReset.ShouldReset(previousMapId, incoming);
+        if (gameEvent is InstanceTimerEvent instanceTimer && _instanceSession.Observe(instanceTimer))
+            newSession = true;
         _tracker.Process(gameEvent);
         if (gameEvent is HealEvent heal) _dungeonHealing.ObserveHeal(heal, _tracker.ExportCache().SelfId);
         if (changedZone && !newSession && !GameData.IsDungeonMap(previousMapId)) _partyOnly.Reset();
