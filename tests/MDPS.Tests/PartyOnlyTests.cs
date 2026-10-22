@@ -5,6 +5,16 @@ using MDPS;
 
 public class PartyOnlyTests
 {
+    [Fact]
+    public void Party_actor_id_replaces_placeholder_with_profile_name_without_losing_damage()
+    {
+        var filter = new PartyOnly();
+        filter.Observe(new PartyMemberObservedEvent(1000, 2, "Aliado", 2001));
+        var fight = CrowdFight();
+        var unnamed = fight with { Combatants = fight.Combatants.Select(c => c.ActorId == 2 ? c with { Name = "#2" } : c).ToArray() };
+        var visible = filter.Filter(unnamed)!;
+        Assert.Contains(visible.Combatants, c => c.ActorId == 2 && c.Name == "Aliado" && c.Damage > 0);
+    }
     private static EncounterSnapshot CrowdFight() => new(Guid.NewGuid(), "Chefe", "Mapa", DateTimeOffset.UtcNow,
         10000, 10000, true, EncounterEndReason.None, 100000, 10000, null,
         [

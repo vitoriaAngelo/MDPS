@@ -10,6 +10,7 @@ public sealed class PartyOnly
     private readonly object _gate = new();
     private PartyMemberInfo[]? _members;
     private readonly HashSet<uint> _actorIds = [];
+    private readonly Dictionary<uint, PartyMemberInfo> _namedActors = [];
     private readonly Dictionary<uint, CachedPlayer> _knownPlayers = [];
     private readonly Dictionary<string, PartyMemberInfo> _profileMembers = new(StringComparer.OrdinalIgnoreCase);
     private PartyMemberInfo[] _inferredMembers = [];
@@ -37,7 +38,10 @@ public sealed class PartyOnly
         {
             if (member.ActorId != 0) _actorIds.Add(member.ActorId);
             if (!string.IsNullOrWhiteSpace(member.Name))
+            {
                 _profileMembers[member.Name] = new PartyMemberInfo(member.Name, member.ServerId, 0, 0, 0, GameClass.Unknown);
+                if (member.ActorId != 0) _namedActors[member.ActorId] = _profileMembers[member.Name];
+            }
         }
     }
 
@@ -89,7 +93,7 @@ public sealed class PartyOnly
 
     public void Reset()
     {
-        lock (_gate) { _members = null; _actorIds.Clear(); _knownPlayers.Clear(); _profileMembers.Clear(); _inferredMembers = []; }
+        lock (_gate) { _members = null; _actorIds.Clear(); _namedActors.Clear(); _knownPlayers.Clear(); _profileMembers.Clear(); _inferredMembers = []; }
     }
 
     public void Update(PartyRosterEvent roster)
@@ -102,8 +106,12 @@ public sealed class PartyOnly
         if (snapshot is null) return null;
         PartyMemberInfo[]? roster;
         HashSet<uint> actorIds;
-        lock (_gate) { roster = AllMembers(); actorIds = new HashSet<uint>(_actorIds); }
-        var members = snapshot.Combatants.Where(c => actorIds.Contains(c.ActorId) || IsMember(c, roster)).ToArray();
+        Dictionary<uint, PartyMemberInfo> namedActors;
+        lock (_gate) { roster = AllMembers(); actorIds = new HashSet<uint>(_actorIds); namedActors = new(_namedActors); }
+        var members = snapshot.Combatants.Where(c => actorIds.Contains(c.ActorId) || IsMember(c, roster))
+            .Select(c => c.Name.StartsWith('#') && namedActors.TryGetValue(c.ActorId, out var member)
+                ? c with { Name = member.Name, ServerId = member.ServerId, Class = member.Class == GameClass.Unknown ? c.Class : member.Class }
+                : c).ToArray();
         long damage = members.Sum(c => c.Damage);
         var timed = members.Where(c => c.Damage > 0 && c.FirstHitMs > 0 && c.LastHitMs >= c.FirstHitMs).ToArray();
         long combatMs = timed.Length > 0
