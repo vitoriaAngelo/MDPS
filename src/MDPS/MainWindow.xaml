@@ -164,7 +164,6 @@
    <Grid Grid.Row="0" MouseLeftButtonDown="DragHeader" Background="Transparent" Margin="0,0,0,5">
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
      <TextBlock x:Name="CompactLogo" Text="M D P S" Foreground="#68E7CA" FontWeight="Bold" FontSize="11" Margin="0,0,8,0" />
-     <TextBlock x:Name="CompactClock" Text="00:00" Foreground="#F4A7BB" FontFamily="Consolas" FontSize="10" VerticalAlignment="Center" Margin="0,0,7,0" />
      <TextBlock x:Name="CompactFightTime" Text="00:00" Foreground="#8B9CB3" FontSize="10" VerticalAlignment="Center" />
     </StackPanel>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -215,7 +214,10 @@
      </DataTemplate></ItemsControl.ItemTemplate>
     </ItemsControl>
    </ScrollViewer>
-   <TextBlock x:Name="CompactStatus" Grid.Row="4" Foreground="#8B9CB3" FontSize="9" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+   <Grid Grid.Row="4" Margin="0,3,0,0">
+    <TextBlock x:Name="CompactStatus" Foreground="#8B9CB3" FontSize="9" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+    <TextBlock x:Name="CompactClock" Grid.Column="1" Text="00:00" Foreground="#F4A7BB" FontFamily="Consolas" FontSize="10" HorizontalAlignment="Right" />
+   </Grid>
   </Grid>
   <Grid x:Name="IdleOverlay" Visibility="Collapsed" MouseLeftButtonDown="DragHeader" Background="Transparent">
    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
