@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private DemoFightSource? _demo;
     private EncounterSnapshot? _shown;
     private FightRecord? _selected;
+    private bool _showDungeonTotal;
     private readonly List<FightRecord> _history = [];
     private readonly DungeonHealingTotal _dungeonHealing = new();
     private readonly DungeonDamageTotal _dungeonDamage = new();
@@ -235,6 +236,7 @@ public partial class MainWindow : Window
         _partyOnly.Reset();
         _demonstrating = demo;
         _selected = null;
+        _showDungeonTotal = false;
         _tracker = new CombatTracker(_data, new MeterOptions { TargetMode = TargetMode.All });
         if (!demo)
         {
@@ -358,6 +360,7 @@ public partial class MainWindow : Window
         {
             if (_closing) return;
             _selected = null;
+            _showDungeonTotal = false;
             HistoryPicker.SelectedIndex = 0;
             Render();
         });
@@ -373,7 +376,8 @@ public partial class MainWindow : Window
         _partyOnly.ObserveKnownPlayers(identity.Players);
         _partyOnly.InferDungeonRoster(identity);
         var current = _partyOnly.Filter(_tracker.Snapshot(null, now));
-        var projected = _selected is not null ? _partyOnly.Filter(_selected.Summary) : _dungeonDamage.Snapshot(current);
+        var projected = _selected is not null ? _partyOnly.Filter(_selected.Summary) :
+            _showDungeonTotal ? _dungeonDamage.Snapshot(current) : current;
         _shown = projected?.Combatants.Count > 0 ? projected : null;
         var s = _shown;
         _timer.Interval = s?.IsActive == true ? TimeSpan.FromMilliseconds(250) : TimeSpan.FromSeconds(1);
@@ -392,7 +396,7 @@ public partial class MainWindow : Window
         PartyDps.Text = s is null ? "—" : Compact(s.PartyDps);
         TotalDamage.Text = s is null ? "Aguardando seu combate" : $"{s.TotalDamage.ToString("N0", Pt)} de dano · {s.PlayerCount} jogadores";
         FightTime.Text = s is null ? "00:00" : $"{s.CombatMs / 60000:00}:{s.CombatMs / 1000 % 60:00}";
-        FightState.Text = _selected is not null ? "HISTÓRICO" : _demonstrating ? "SIMULAÇÃO" : s is null ? "AGUARDANDO" : s.IsActive ? "EM COMBATE" : "AO VIVO";
+        FightState.Text = _selected is not null ? "HISTÓRICO" : _showDungeonTotal ? "TOTAL DA DG" : _demonstrating ? "SIMULAÇÃO" : s is null ? "AGUARDANDO" : s.IsActive ? "EM COMBATE" : "AO VIVO";
         var visibleBoss = s is { IsActive: true, Boss: { MaxHpKnown: true, MaxHp: > 0, Hp: >= 0 } }
             ? s.Boss : null;
         BossName.Text = visibleBoss?.Name ?? s?.Title ?? "Nenhum combate da PT";
@@ -703,6 +707,7 @@ public partial class MainWindow : Window
     {
         GearPopup.IsOpen = false;
         _selected = null;
+        _showDungeonTotal = false;
         _tracker.Reset();
         _dungeonDamage.NewSession();
         _dungeonSkills.NewSession();
@@ -715,6 +720,7 @@ public partial class MainWindow : Window
     {
         GearPopup.IsOpen = false;
         _selected = null;
+        _showDungeonTotal = false;
         _tracker.Reset();
         _dungeonHealing.NewSession();
         _dungeonDamage.NewSession();
@@ -745,16 +751,24 @@ public partial class MainWindow : Window
     private void RefreshHistory()
     {
         var selected = _selected;
-        var choices = new List<FightChoice> { new("Total da DG / combate atual", null) };
+        var choices = new List<FightChoice>
+        {
+            new("Combate atual (ao vivo)", null, false),
+            new("Total acumulado da DG", null, true)
+        };
         choices.AddRange(_history.OrderByDescending(r => r.Summary.StartedAt).Take(10).Select(r =>
-            new FightChoice($"{r.Summary.StartedAt.ToLocalTime():dd/MM HH:mm} · {r.Summary.Title} · PT {r.Summary.PlayerCount}", r)));
+            new FightChoice($"{r.Summary.StartedAt.ToLocalTime():dd/MM HH:mm} · {r.Summary.Title} · PT {r.Summary.PlayerCount}", r, false)));
         HistoryPicker.ItemsSource = choices;
-        HistoryPicker.SelectedIndex = Math.Max(0, choices.FindIndex(c => c.Record?.Summary.Id == selected?.Summary.Id));
+        HistoryPicker.SelectedIndex = selected is not null
+            ? Math.Max(0, choices.FindIndex(c => c.Record?.Summary.Id == selected.Summary.Id))
+            : _showDungeonTotal ? 1 : 0;
     }
 
     private void SelectFight(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        _selected = (HistoryPicker.SelectedItem as FightChoice)?.Record;
+        var choice = HistoryPicker.SelectedItem as FightChoice;
+        _selected = choice?.Record;
+        _showDungeonTotal = choice?.DungeonTotal == true;
         Render();
     }
 
@@ -897,4 +911,4 @@ internal sealed record PanelTheme(string Main, string Boss, string Self);
 
 public sealed record PlayerRow(string Name, string Damage, string Dps, string Share, double Bar, string Color, string? Icon);
 public sealed record SkillDisplayRow(string Name, string Damage, string Hits, string Share, double Bar);
-public sealed record FightChoice(string Label, FightRecord? Record);
+public sealed record FightChoice(string Label, FightRecord? Record, bool DungeonTotal = false);
