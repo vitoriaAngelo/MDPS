@@ -2,7 +2,7 @@
 
 Leitor de DPS e cura da PT para **AION 2 Global**, com painel compacto para ficar sobre o jogo.
 
-**Versão atual: 1.1.4 · Criado por @misttylol**
+**Versão atual: 1.2.0 · Criado por @misttylol**
 
 ![Prévia do MDPS](src/MDPS/Assets/mdps-preview.png)
 
@@ -41,6 +41,8 @@ O MDPS inclui o .NET necessário. Para ler o combate ao vivo, instale também o
 - **— Minimizar:** minimiza o painel.
 - **× Fechar:** fecha o MDPS.
 - **Modo compacto:** reduz o painel para mostrar chefe, PT, DPS e cura ocupando pouco espaço.
+- **Overlay automático:** fica como uma pequena barra fora da DG e abre sozinho ao entrar.
+- **Minhas skills:** mostra quanto cada habilidade sua causou durante a DG, com acertos e participação.
 - **Verificar atualização:** baixa e abre automaticamente a versão mais recente publicada no GitHub.
 
 Ao entrar em outra DG ou sair da DG, os números acumulados são reiniciados. Iniciar um boss ou mini boss dentro da

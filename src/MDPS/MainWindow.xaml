@@ -63,11 +63,15 @@
      <TextBlock x:Name="BossLimitText" Visibility="Collapsed" Foreground="#AAB8CB" FontSize="9" Margin="0,4,0,0" />
     </StackPanel>
    </StackPanel>
-   <Grid Grid.Row="3" Margin="0,0,0,5">
+   <TabControl Grid.Row="3" Grid.RowSpan="2" Background="Transparent" BorderThickness="0" Padding="0">
+    <TabItem Header="PT / DPS">
+     <Grid Margin="0,5,0,0">
+      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+   <Grid Grid.Row="0" Margin="0,0,0,5">
     <TextBlock Text="JOGADOR / DANO" Foreground="#8B9CB3" FontSize="9" />
     <TextBlock Text="DPS        %" Foreground="#8B9CB3" FontSize="9" HorizontalAlignment="Right" />
    </Grid>
-   <Grid Grid.Row="4">
+   <Grid Grid.Row="1">
     <TextBlock x:Name="EmptyMessage" Text="Sua PT aparecerá quando o combate começar.&#10;Abra o leitor antes de entrar na DG." TextWrapping="Wrap" Foreground="#8B9CB3" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="270" TextAlignment="Center" />
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
      <ItemsControl x:Name="Players">
@@ -95,6 +99,31 @@
      </ItemsControl>
     </ScrollViewer>
    </Grid>
+     </Grid>
+    </TabItem>
+    <TabItem Header="MINHAS SKILLS">
+     <Grid Margin="0,7,0,0">
+      <TextBlock x:Name="SkillsEmpty" Text="O dano das suas habilidades aparecerá aqui durante a DG." TextWrapping="Wrap" Foreground="#8B9CB3" FontSize="11" VerticalAlignment="Center" TextAlignment="Center" Margin="12" />
+      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+       <ItemsControl x:Name="SkillRows">
+        <ItemsControl.ItemTemplate><DataTemplate>
+         <Border Background="#182331" CornerRadius="6" Margin="0,0,0,4" Padding="8,6">
+          <Grid>
+           <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+           <StackPanel>
+            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="11" TextTrimming="CharacterEllipsis" />
+            <TextBlock Foreground="#8B9CB3" FontSize="9"><Run Text="{Binding Hits}"/><Run Text=" · "/><Run Text="{Binding Share}"/></TextBlock>
+            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Bar}" Height="2" Margin="0,4,8,0" Foreground="#68E7CA" Background="#273345" BorderThickness="0" />
+           </StackPanel>
+           <TextBlock Grid.Column="1" Text="{Binding Damage}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0,0,0" />
+          </Grid>
+         </Border>
+        </DataTemplate></ItemsControl.ItemTemplate>
+       </ItemsControl>
+      </ScrollViewer>
+     </Grid>
+    </TabItem>
+   </TabControl>
    <StackPanel Grid.Row="5" Margin="0,7,0,0">
     <TextBlock x:Name="StatusText" Text="Iniciando leitor…" Foreground="#68E7CA" FontSize="9" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
     <TextBlock x:Name="DetailText" Visibility="Collapsed" />
@@ -154,6 +183,15 @@
    </ScrollViewer>
    <TextBlock x:Name="CompactStatus" Grid.Row="4" Foreground="#8B9CB3" FontSize="9" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
   </Grid>
+  <Grid x:Name="IdleOverlay" Visibility="Collapsed" MouseLeftButtonDown="DragHeader" Background="Transparent">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="M D P S" Foreground="#68E7CA" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" />
+   <TextBlock Grid.Column="1" Text="Aguardando DG" Foreground="#8B9CB3" FontSize="10" VerticalAlignment="Center" Margin="10,0" />
+   <StackPanel Grid.Column="2" Orientation="Horizontal">
+    <Button x:Name="IdleGearButton" Content="⚙" FontFamily="Segoe UI Symbol" Click="ToggleActionsMenu" ToolTip="Configurações" Padding="5,1" Margin="0,0,3,0" />
+    <Button Content="×" Click="CloseWindow" ToolTip="Fechar" Padding="5,1" />
+   </StackPanel>
+  </Grid>
   <Popup x:Name="GearPopup" Placement="Bottom" VerticalOffset="6" StaysOpen="False" AllowsTransparency="True">
    <Border Background="#182331" BorderBrush="#334155" BorderThickness="1" CornerRadius="9" Padding="8" Width="176">
     <StackPanel>
@@ -162,6 +200,7 @@
      <Button x:Name="ShowDamageButton" Content="Meu DPS" Click="ShowDamage" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
      <TextBlock Text="VISUALIZAÇÃO" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
      <Button x:Name="CompactModeButton" Content="Modo compacto" Click="ToggleCompactMode" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
+     <Button x:Name="AutoOverlayButton" Content="✓ Recolher fora da DG" Click="ToggleAutoOverlay" HorizontalContentAlignment="Left" Margin="0,0,0,8" ToolTip="Vira uma pequena barra fora da DG e abre automaticamente ao entrar" />
      <TextBlock Text="COR DO PAINEL" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
      <ComboBox x:Name="ThemePicker" Height="25" Margin="0,0,0,8" ToolTip="Escolha uma cor para os destaques do painel">
       <ComboBoxItem Content="Padrão"/><ComboBoxItem Content="Azul"/><ComboBoxItem Content="Roxo"/>

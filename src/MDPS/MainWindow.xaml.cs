@@ -43,9 +43,11 @@ public partial class MainWindow : Window
     private readonly DungeonDamageTotal _dungeonDamage = new();
     private readonly PartyOnly _partyOnly = new();
     private readonly DungeonInstanceSession _instanceSession = new();
+    private readonly DungeonSkillDamage _dungeonSkills = new();
     private bool _demonstrating, _locked, _lockHotkey, _closing;
     private bool _showOwnDamage;
     private bool _compactMode;
+    private bool _autoOverlay = true, _autoCollapsed;
     private int _themeIndex;
     private int _generation;
     private int _savedCacheVersion;
@@ -70,6 +72,7 @@ public partial class MainWindow : Window
         Height = 505;
         MinHeight = 420;
         ApplyCompactMode(false);
+        ApplyAutoOverlay(GameData.IsDungeonMap(_tracker?.ExportCache().MapId ?? 0), false);
         if (!_args.Contains("--self-test") && !_args.Contains("--smoke-live")) RestoreLayout();
         ReadHistory();
         RefreshHistory();
@@ -228,6 +231,7 @@ public partial class MainWindow : Window
         _tracker?.Reset();
         _dungeonHealing.NewSession();
         _dungeonDamage.NewSession();
+        _dungeonSkills.NewSession();
         _partyOnly.Reset();
         _demonstrating = demo;
         _selected = null;
@@ -237,6 +241,7 @@ public partial class MainWindow : Window
             var cached = IdentityCache.Load() ?? SelfRecovery.FromRecentHistory(_history, DateTimeOffset.UtcNow);
             if (cached is not null) _tracker.ImportCache(cached);
         }
+        ApplyAutoOverlay(demo || GameData.IsDungeonMap(_tracker.ExportCache().MapId), true);
         _savedCacheVersion = _tracker.CacheVersion;
         _tracker.RosterReceived += _partyOnly.Update;
         // The closure belongs to this tracker: switching modes never saves a demonstration as a real fight.
@@ -325,12 +330,15 @@ public partial class MainWindow : Window
         if (gameEvent is PartyMemberObservedEvent partyMember) _partyOnly.Observe(partyMember);
         // Processing a zone event may finish a fight; count it before starting the new map's total.
         var previousMapId = _tracker.ExportCache().MapId;
+        var identityBefore = _tracker.ExportCache();
         var changedZone = gameEvent is ZoneChangedEvent changed && !changed.IsTeleport
             && changed.MapId != previousMapId;
         var newSession = gameEvent is ZoneChangedEvent incoming
             && DungeonEntryReset.ShouldReset(previousMapId, incoming);
         if (gameEvent is InstanceTimerEvent instanceTimer && _instanceSession.Observe(instanceTimer))
             newSession = true;
+        if (gameEvent is DamageEvent skillHit)
+            _dungeonSkills.Observe(skillHit, identityBefore.SelfId, identityBefore.MapId, _data);
         _tracker.Process(gameEvent);
         if (gameEvent is HealEvent heal) _dungeonHealing.ObserveHeal(heal, _tracker.ExportCache().SelfId);
         if (changedZone && !newSession && !GameData.IsDungeonMap(previousMapId)) _partyOnly.Reset();
@@ -341,6 +349,11 @@ public partial class MainWindow : Window
         _partyOnly.Reset();
         _dungeonHealing.NewSession();
         _dungeonDamage.NewSession();
+        _dungeonSkills.NewSession();
+        if (gameEvent is ZoneChangedEvent zone)
+            ApplyAutoOverlay(zone.IsDungeon || GameData.IsDungeonMap(zone.MapId), true);
+        else if (gameEvent is InstanceTimerEvent)
+            ApplyAutoOverlay(true, true);
         Dispatcher.BeginInvoke(() =>
         {
             if (_closing) return;
@@ -436,6 +449,12 @@ public partial class MainWindow : Window
             StatusText.Text = $"PT provável: {_partyOnly.MemberCount} nomes · confirme se todos são da PT";
         if (_storageError is not null) StatusText.Text = _storageError;
         CompactStatus.Text = StatusText.Text;
+        var skillTotals = _dungeonSkills.Snapshot(_data);
+        var maxSkill = skillTotals.FirstOrDefault()?.Damage ?? 1;
+        SkillRows.ItemsSource = skillTotals.Select(x => new SkillDisplayRow(x.Name,
+            x.Damage.ToString("N0", Pt), x.Hits.ToString("N0", Pt) + " acertos",
+            (x.Share * 100).ToString("0.0", Pt) + "%", x.Damage / (double)Math.Max(1, maxSkill) * 100)).ToList();
+        SkillsEmpty.Visibility = skillTotals.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void SaveIdentityCache()
@@ -508,8 +527,18 @@ public partial class MainWindow : Window
         Render();
     }
 
+    private void ToggleAutoOverlay(object sender, RoutedEventArgs e)
+    {
+        GearPopup.IsOpen = false;
+        _autoOverlay = !_autoOverlay;
+        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Recolher fora da DG";
+        ApplyAutoOverlay(GameData.IsDungeonMap(_tracker.ExportCache().MapId), true);
+        SaveSettings();
+    }
+
     private void ApplyCompactMode(bool resize)
     {
+        if (_autoCollapsed) return;
         FullPanel.Visibility = _compactMode ? Visibility.Collapsed : Visibility.Visible;
         CompactPanel.Visibility = _compactMode ? Visibility.Visible : Visibility.Collapsed;
         WindowBorder.Padding = _compactMode ? new Thickness(7, 5, 7, 4) : new Thickness(12, 10, 12, 10);
@@ -522,6 +551,24 @@ public partial class MainWindow : Window
         }
         CompactModeButton.Content = _compactMode ? "✓ Modo compacto" : "Modo compacto";
         GearPopup.PlacementTarget = _compactMode ? CompactGearButton : GearButton;
+    }
+
+    private void ApplyAutoOverlay(bool inDungeon, bool resize)
+    {
+        _autoCollapsed = _autoOverlay && !inDungeon;
+        IdleOverlay.Visibility = _autoCollapsed ? Visibility.Visible : Visibility.Collapsed;
+        FullPanel.Visibility = !_autoCollapsed && !_compactMode ? Visibility.Visible : Visibility.Collapsed;
+        CompactPanel.Visibility = !_autoCollapsed && _compactMode ? Visibility.Visible : Visibility.Collapsed;
+        WindowBorder.Padding = _autoCollapsed ? new Thickness(7, 4, 7, 4) :
+            _compactMode ? new Thickness(7, 5, 7, 4) : new Thickness(12, 10, 12, 10);
+        if (resize)
+        {
+            Width = _autoCollapsed ? 225 : _compactMode ? 290 : 282;
+            Height = _autoCollapsed ? 38 : _compactMode ? 245 : 505;
+        }
+        MinWidth = _autoCollapsed ? 210 : _compactMode ? 240 : 275;
+        MinHeight = _autoCollapsed ? 34 : _compactMode ? 165 : 420;
+        GearPopup.PlacementTarget = _autoCollapsed ? IdleGearButton : _compactMode ? CompactGearButton : GearButton;
     }
 
     private void UpdateMetricMenu()
@@ -611,9 +658,11 @@ public partial class MainWindow : Window
                 _showOwnDamage = settings?.ShowOwnDamage ?? false;
                 _themeIndex = Math.Clamp(settings?.ThemeIndex ?? 0, 0, Themes.Length - 1);
                 _compactMode = settings?.CompactMode ?? false;
+                _autoOverlay = settings?.AutoOverlay ?? true;
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) { }
+        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Recolher fora da DG";
     }
 
     private void SaveSettings()
@@ -621,7 +670,7 @@ public partial class MainWindow : Window
         try
         {
             Directory.CreateDirectory(_storage);
-            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(new PersonalSettings(_showOwnDamage, _themeIndex, _compactMode)));
+            File.WriteAllText(SettingsPath, JsonSerializer.Serialize(new PersonalSettings(_showOwnDamage, _themeIndex, _compactMode, _autoOverlay)));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
     }
@@ -656,6 +705,7 @@ public partial class MainWindow : Window
         _selected = null;
         _tracker.Reset();
         _dungeonDamage.NewSession();
+        _dungeonSkills.NewSession();
         _dungeonHealing.NewSession();
         HistoryPicker.SelectedIndex = 0;
         Render();
@@ -668,6 +718,7 @@ public partial class MainWindow : Window
         _tracker.Reset();
         _dungeonHealing.NewSession();
         _dungeonDamage.NewSession();
+        _dungeonSkills.NewSession();
         HistoryPicker.SelectedIndex = 0;
         Render();
     }
@@ -841,8 +892,9 @@ public partial class MainWindow : Window
 }
 
 internal sealed record WindowLayout(double Left, double Top, double Width, double Height);
-internal sealed record PersonalSettings(bool ShowOwnDamage, int ThemeIndex = 0, bool CompactMode = false);
+internal sealed record PersonalSettings(bool ShowOwnDamage, int ThemeIndex = 0, bool CompactMode = false, bool AutoOverlay = true);
 internal sealed record PanelTheme(string Main, string Boss, string Self);
 
 public sealed record PlayerRow(string Name, string Damage, string Dps, string Share, double Bar, string Color, string? Icon);
+public sealed record SkillDisplayRow(string Name, string Damage, string Hits, string Share, double Bar);
 public sealed record FightChoice(string Label, FightRecord? Record);
