@@ -10,7 +10,9 @@ public sealed class DungeonInstanceSession
 
     public bool Observe(InstanceTimerEvent timer)
     {
-        if (!GameData.IsDungeonMap(timer.MapId) || timer.Kind == InstanceTimerEvent.BossLimit)
+        // Ticket reentries can report a server map id that is not in the local dungeon table.
+        // The instance countdown itself is the reliable signal; boss-limit timers are excluded.
+        if (timer.Kind == InstanceTimerEvent.BossLimit)
             return false;
 
         var key = (timer.MapId, timer.Kind);
