@@ -465,6 +465,7 @@ public partial class MainWindow : Window
         if (_storageError is not null) StatusText.Text = _storageError;
         CompactStatus.Text = StatusText.Text;
         IdleClock.Text = DateTime.Now.ToString("HH:mm");
+        FullClock.Text = IdleClock.Text;
         var skillTotals = _dungeonSkills.Snapshot(_data);
         var maxSkill = skillTotals.FirstOrDefault()?.Damage ?? 1;
         SkillRows.ItemsSource = skillTotals.Select(x => new SkillDisplayRow(x.Name,
@@ -548,7 +549,7 @@ public partial class MainWindow : Window
     {
         GearPopup.IsOpen = false;
         _autoOverlay = !_autoOverlay;
-        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Ícone na bandeja fora da DG";
+        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Minimizar";
         ApplyAutoOverlay(GameData.IsDungeonMap(_tracker.ExportCache().MapId), true);
         SaveSettings();
     }
@@ -713,7 +714,7 @@ public partial class MainWindow : Window
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException) { }
-        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Ícone na bandeja fora da DG";
+        AutoOverlayButton.Content = (_autoOverlay ? "✓ " : "") + "Minimizar";
     }
 
     private void SaveSettings()

@@ -13,6 +13,7 @@
      <TextBlock Text="AION 2 GLOBAL  /  PT" Foreground="#8B9CB3" FontSize="9" Margin="0,1,0,0" />
     </StackPanel>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+     <TextBlock x:Name="FullClock" Text="00:00" Foreground="#AAB8CB" FontFamily="Consolas" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0" />
      <Button x:Name="GearButton" Content="⚙" FontFamily="Segoe UI Symbol" FontSize="15" Click="ToggleActionsMenu" ToolTip="Ações do leitor" Margin="0,0,4,0" Padding="7,4" AutomationProperties.Name="Abrir ações" />
      <Button x:Name="ResetButton" Content="↺" FontFamily="Segoe UI Symbol" FontSize="16" Click="ResetMeter" ToolTip="Zerar os números do painel; o histórico salvo continua disponível" Margin="0,0,4,0" Padding="7,4" AutomationProperties.Name="Zerar painel" />
      <Button Content="—" Click="Minimize" ToolTip="Minimizar" Margin="0,0,4,0" Padding="7,5" />
@@ -204,7 +205,7 @@
      <Button x:Name="ShowDamageButton" Content="Meu DPS" Click="ShowDamage" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
      <TextBlock Text="VISUALIZAÇÃO" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
      <Button x:Name="CompactModeButton" Content="Modo compacto" Click="ToggleCompactMode" HorizontalContentAlignment="Left" Margin="0,0,0,8" />
-     <Button x:Name="AutoOverlayButton" Content="✓ Ícone na bandeja fora da DG" Click="ToggleAutoOverlay" HorizontalContentAlignment="Left" Margin="0,0,0,8" ToolTip="Deixa somente o ícone do MDPS na bandeja do Windows fora da DG" />
+     <Button x:Name="AutoOverlayButton" Content="✓ Minimizar" Click="ToggleAutoOverlay" HorizontalContentAlignment="Left" Margin="0,0,0,8" ToolTip="Mantém o MDPS minimizado fora da DG e disponível na bandeja do Windows" />
      <TextBlock Text="COR DO PAINEL" Foreground="#8B9CB3" FontSize="10" Margin="8,0,0,5" />
      <ComboBox x:Name="ThemePicker" Height="25" Margin="0,0,0,8" ToolTip="Escolha uma cor para os destaques do painel">
       <ComboBoxItem Content="Padrão"/><ComboBoxItem Content="Azul"/><ComboBoxItem Content="Roxo"/>
